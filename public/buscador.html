@@ -1,0 +1,530 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Buscador DronesWenos</title>
+<style>
+*{
+    box-sizing:border-box;
+}
+
+body{
+    margin:0;
+    font-family:Arial;
+    background:#f3f4f6;
+}
+
+header{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    padding:18px 35px;
+    background:#1f2937;
+    color:white;
+}
+
+nav{
+    background:white;
+    box-shadow:0 2px 7px rgba(0,0,0,.12);
+    padding:12px 35px;
+}
+
+nav ul{
+    display:flex;
+    gap:15px;
+    list-style:none;
+    margin:0;
+    padding:0;
+}
+
+nav a{
+    text-decoration:none;
+    color:#1f2937;
+    font-weight:bold;
+    padding:10px 18px;
+    border-radius:6px;
+}
+
+nav a:hover{
+    background:#2563eb;
+    color:white;
+}
+
+</style>
+
+</head>
+<style>
+
+main{
+    max-width:1050px;
+    margin:35px auto;
+    padding:0 20px;
+}
+
+.panel{
+
+    background:white;
+    padding:28px;
+    border-radius:12px;
+
+    box-shadow:
+    0 3px 12px rgba(0,0,0,.12);
+
+    margin-bottom:25px;
+}
+
+.filtros{
+
+    display:flex;
+    gap:15px;
+    flex-wrap:wrap;
+
+}
+
+input,select{
+
+    padding:10px;
+
+    border:
+    2px solid #acacac;
+
+    border-radius:6px;
+
+}
+
+#resultado-grid{
+
+    display:grid;
+
+    grid-template-columns:
+    repeat(auto-fill,minmax(300px,1fr));
+
+    gap:20px;
+
+    margin-top:20px;
+
+}
+
+.tarjeta{
+
+    background:#f9fafb;
+
+    border:1px solid #ddd;
+
+    border-radius:10px;
+
+    padding:18px;
+
+}
+
+.tarjeta h3{
+
+    color:#2563eb;
+
+}
+
+
+footer{
+
+    background:#1f2937;
+
+    color:white;
+
+    text-align:center;
+
+    padding:20px;
+
+    margin-top:40px;
+
+}
+
+</style>
+<body>
+
+
+<header>
+
+<h1>DronesWenos</h1>
+
+<div id="nombre-header">
+Usuario
+</div>
+
+</header>
+
+
+
+<nav>
+
+<ul>
+
+<li>
+<a href="index.html">
+Inicio
+</a>
+</li>
+
+
+<li>
+<a href="dron.html">
+Administrar drones
+</a>
+</li>
+
+
+<li>
+<a href="buscador.html">
+Buscador
+</a>
+</li>
+
+
+</ul>
+
+</nav>
+
+
+
+
+<main>
+
+
+<section class="panel">
+
+<h2>
+Buscador
+</h2>
+
+
+<div class="filtros">
+
+
+<input 
+id="filtro-texto"
+placeholder="Marca o modelo">
+
+
+
+<select id="filtro-tipo">
+
+
+<option value="todos">
+Todos
+</option>
+
+
+<option value="volador">
+Volador
+</option>
+
+
+<option value="bonito">
+Bonito
+</option>
+
+
+<option value="kawai">
+Kawai
+</option>
+
+
+<option value="sagitario">
+Sagitario
+</option>
+
+
+</select>
+
+
+</div>
+
+</section>
+
+
+
+
+<section class="panel">
+
+
+<p id="cargando">
+Obteniendo drones...
+</p>
+
+
+<div id="mensaje"></div>
+
+
+<div id="resultado-grid"></div>
+
+
+</section>
+
+
+
+</main>
+
+
+
+<footer>
+
+DronesWenos
+
+</footer>
+<script>
+
+
+const API_DRONES='/api/drones';
+
+
+const grid=
+document.getElementById('resultado-grid');
+
+
+const msg=
+document.getElementById('mensaje');
+
+
+const carg=
+document.getElementById('cargando');
+
+
+
+let drones=[];
+
+
+
+
+document
+.getElementById('filtro-texto')
+.addEventListener(
+'input',
+filtrar
+);
+
+
+
+document
+.getElementById('filtro-tipo')
+.addEventListener(
+'change',
+filtrar
+);
+
+
+
+
+
+window.onload=cargar;
+
+
+
+
+async function cargar(){
+
+try{
+
+
+const respuesta=
+await fetch(
+API_DRONES,
+{
+
+headers:{
+
+Authorization:
+'Bearer '
++
+localStorage.getItem('token')
+
+}
+
+}
+
+);
+
+
+
+if(!respuesta.ok){
+
+throw new Error(
+'Error '+respuesta.status
+);
+
+}
+
+
+
+drones=
+await respuesta.json();
+
+
+
+carg.style.display='none';
+
+
+pintar(drones);
+
+
+
+}
+catch(error){
+
+
+carg.style.display='none';
+
+
+msg.textContent=
+error.message;
+
+
+console.error(error);
+
+
+}
+
+
+}
+
+
+
+
+
+
+function pintar(lista){
+
+
+grid.innerHTML='';
+
+
+
+if(lista.length===0){
+
+msg.textContent=
+'No hay drones';
+
+return;
+
+}
+
+
+
+msg.textContent='';
+
+
+
+lista.forEach(d=>{
+
+
+grid.innerHTML+=`
+
+
+<div class="tarjeta">
+
+
+<h3>
+${d.marca} - ${d.modelo}
+</h3>
+
+
+<p>
+<b>Tipo:</b>
+${d.tipo}
+</p>
+
+
+<p>
+<b>Autonomía:</b>
+${d.autonomiaMinutos} min
+</p>
+
+
+<p>
+<b>Alcance:</b>
+${d.alcanceMetros} m
+</p>
+
+
+<p>
+<b>Peso:</b>
+${d.pesoGramos} g
+</p>
+
+
+<p>
+<b>Cámara:</b>
+${d.tieneCamara?'Sí':'No'}
+</p>
+
+
+
+</div>
+
+
+`;
+
+
+});
+
+
+}
+
+
+
+
+
+function filtrar(){
+
+
+const texto=
+document
+.getElementById('filtro-texto')
+.value
+.toLowerCase();
+
+
+
+const tipo=
+document
+.getElementById('filtro-tipo')
+.value;
+
+
+
+const resultado=
+drones.filter(d=>{
+
+
+const coincideTexto=
+
+
+(d.marca||'')
+.toLowerCase()
+.includes(texto)
+
+||
+
+(d.modelo||'')
+.toLowerCase()
+.includes(texto);
+const coincideTipo=
+
+tipo==='todos'
+
+||
+
+(d.tipo||'')
+.toLowerCase()
+===tipo;
+
+return coincideTexto && coincideTipo;
+
+});
+
+pintar(resultado);
+}
+
+</script>
+</body>
+
+</html>

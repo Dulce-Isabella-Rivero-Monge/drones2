@@ -1,0 +1,83 @@
+<html>
+ 
+<head></head>
+<body>
+ <style>
+    body {
+      margin: 0;
+      padding: 25px;
+      font-family: Arial, sans-serif;
+      background-color: #f4f4f4;
+    }
+ 
+    h1,
+    h2 {
+      text-align: center;
+    }
+ 
+    .contenedor-principal {
+      max-width: 1100px;
+      margin: auto;
+      width: 400px;
+      height: 400px;
+      background-color: rgba(200, 223, 243, 0.7);
+      text-align: center;
+      border-radius: 15%;
+      padding: 25px;
+    }
+
+    input {
+
+      height: 40px;
+      border: none;
+      cursor: pointer;
+    }
+ 
+    #btn-guardar {
+      padding: 10px 18px;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+      font-weight: bold;
+      color: white;
+      background-color: #198754;
+      margin-top: 15px;
+    }
+  </style>
+  <h1>Registrese en el sistema</h1> 
+ <div class="contenedor-principal">
+<h2>Escriba su nombre</h2>
+<input id = "nombre" type="text" placeholder="Escriba su nombre">
+ 
+<h2>Escriba su email</h2>
+<input id = "email" type="text" placeholder="Escriba su email">
+<h2>Escriba la clave</h2>
+<input id = "clave" type="password" placeholder="Escriba su clave"> <br>
+ 
+<input type="button" value="Registrarse" id = "btn-guardar">
+</div>
+<script>
+ 
+const btnGuardar = document.getElementById('btn-guardar');
+btnGuardar.addEventListener('click', async () => {
+  // Obtener colores actuales de cada parte
+  const usuario = {
+    nombre: document.getElementById('nombre').value,
+    email: document.getElementById('email').value,
+    clave: document.getElementById('clave').value,
+  
+  };
+  // Enviar via fetch al servidor
+  const resp = await fetch('/api/registro', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json'
+    },
+    body: JSON.stringify(usuario)
+  });
+  const data = await resp.json();
+  console.log('Usuario guardado en servidor:', data);
+});
+</script>
+</body>
+</html>

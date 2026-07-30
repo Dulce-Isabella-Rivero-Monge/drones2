@@ -1,0 +1,107 @@
+API REST de Drones y Usuarios
+
+Una API RESTful desarrollada con **Node.js**, **Express** y **Mongoose (MongoDB)** que permite gestionar usuarios (con registro, login seguro y autenticación mediante JWT) y un CRUD completo de drones protegido por token.
+
+---
+
+Tecnologías Utilizadas
+
+*   **Entorno de ejecución:** Node.js
+*   **Framework Web:** Express (v5.2.1)
+*   **Base de Datos:** MongoDB con Mongoose (v9.8.0)
+*   **Seguridad y Autenticación:** 
+    *   Bcryptjs (Hasheo de contraseñas)
+    *   JSON Web Tokens - JWT (Protección de rutas)
+
+---
+
+Requisitos Previos
+
+Antes de comenzar, asegúrate de tener instalado:
+*   [Node.js](https://nodejs.org) (Versión 18 o superior recomendada)
+*   [MongoDB](https://mongodb.com) (Instalación local corriendo en el puerto `27017` o una cuenta en MongoDB Atlas)
+
+---
+
+Instalación y Configuración
+
+1. **Clonar el proyecto e ingresar al directorio:**
+   ```bash
+   cd drones
+   ```
+
+2. **Instalar todas las dependencias requeridas:**
+   ```bash
+   npm install
+   ```
+
+3. **Configurar la Base de Datos:**
+   Por defecto, el proyecto se conecta de forma local a `mongodb://localhost:27017`. Si deseas usar **MongoDB Atlas**, ve al archivo `conexion.js` y descomenta/edita la línea de la URI correspondiente.
+
+4. **Iniciar el servidor:**
+   ```bash
+   node index.js
+   ```
+   El servidor se levantará en el puerto `3000` (http://localhost:3000).
+
+---
+
+Puntos de Enlace (Endpoints) de la API
+
+Autenticación y Usuarios
+
+| Método | Endpoint | Descripción | Requiere Token |
+| :--- | :--- | :--- | :--- |
+| **POST** | `/api/registro` | Registrar un nuevo usuario con clave cifrada. | No |
+| **POST** | `/api/login` | Autenticar usuario y obtener el Token JWT. | No |
+| **GET** | `/api/usuarios` | Obtener la lista de todos los usuarios. | No |
+| **GET** | `/api/usuarios/:id` | Obtener los detalles de un usuario por su ID. | No |
+| **GET** | `/api/usuario-logueado` | Obtener el perfil del usuario dueño del token. | **Sí** |
+| **POST** | `/api/verificatoken` | Endpoint de prueba para validar la vigencia del token. | **Sí** |
+
+Gestión de Drones (Protegidos con JWT)
+*Nota: Para interactuar con estas rutas debes incluir el encabezado `Authorization: Bearer <TU_TOKEN_JWT>`.*
+
+| Método | Endpoint | Descripción |
+| :--- | :--- | :--- |
+| **GET** | `/api/drones` | Listar todos los drones ordenados por fecha de creación de forma descendente. |
+| **GET** | `/api/drones/:id` | Obtener los detalles de un dron específico por su ID. |
+| **POST** | `/api/drones` | Registrar un nuevo dron en el sistema. |
+| **PUT** | `/api/drones/:id` | Actualizar las propiedades de un dron existente. |
+| **DELETE** | `/api/drones/:id` | Eliminar un dron del sistema de manera permanente. |
+
+---
+
+Estructura de Datos (Modelos)
+
+### Dron (`DronSchema`)
+*   `marca` (String)
+*   `modelo` (String)
+*   `tipo` (String)
+*   `autonomiaMinutos` (Number)
+*   `alcanceMetros` (Number)
+*   `pesoGramos` (Number)
+*   `tieneCamara` (Boolean)
+
+### Usuario (`usuarioSchema`)
+*   `nombre` (String, Obligatorio)
+*   `email` (String, Obligatorio, Único)
+*   `clave` (String, Obligatoria - Almacenada como Hash Bcrypt)
+*   `fechaRegistro` (Date, Por defecto la fecha actual)
+
+---
+
+Ejemplo de Uso del Token JWT
+
+Tras hacer una petición exitosa a `/api/login`, recibirás una respuesta como esta:
+```json
+{
+  "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+}
+```
+
+Para consultar cualquier ruta de drones (por ejemplo, `GET /api/drones`), añade el token en la cabecera HTTP de tu herramienta de peticiones (Postman, Thunder Client o Fetch API):
+
+```http
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
+```

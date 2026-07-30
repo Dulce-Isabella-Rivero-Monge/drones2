@@ -1,0 +1,96 @@
+<html>
+ 
+<head>
+ 
+</head>
+<body>
+ 
+   <style>
+    body {
+      margin: 0;
+      padding: 25px;
+      font-family: Arial, sans-serif;
+      background-color: #f4f4f4;
+    }
+ 
+    h1,
+    h2 {
+      text-align: center;
+    }
+ 
+    .contenedor-principal {
+      max-width: 1100px;
+      margin: auto;
+      width: 400px;
+      height: 300px;
+      background-color: rgba(200, 223, 243, 0.7);
+      text-align: center;
+      border-radius: 15%;
+      padding: 25px;
+    }
+
+    input {
+
+      height: 40px;
+      border: none;
+      cursor: pointer;
+    }
+ 
+    #btn-guardar {
+      padding: 10px 18px;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+      font-weight: bold;
+      color: white;
+      background-color: #198754;
+      margin-top: 15px;
+    }
+  </style>
+
+<h1>Ingreso al sistema</h1>
+  <div class="contenedor-principal">
+<h2>Escriba el email</h2>
+<input type="text" placeholder="Escriba el email" id = email>
+ 
+<h2>
+    Escriba la clave
+</h2>
+<input type="password" placeholder="Escriba la clave" id = "clave"> <br>
+ 
+<input type="button" id ="btn-guardar" value="Guardar">
+</div>
+<script>
+const btnGuardar = document.getElementById('btn-guardar');
+btnGuardar.addEventListener('click', async () => {
+  // Obtener colores actuales de cada parte
+  const usuario = {
+    email: document.getElementById('email').value,
+    clave: document.getElementById('clave').value,
+  
+  };
+  // Enviar via fetch al servidor
+  const resp = await fetch('/api/login', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json'
+    },
+    body: JSON.stringify(usuario)
+  });
+  const data = await resp.json();
+  console.log('Respuesta:', data);
+  if (data.error != undefined)
+  {
+    alert(data.error)
+  }
+  else
+  {
+  localStorage.setItem("token", data.token)
+  location.href="index.html"
+  }
+ 
+});
+</script>
+</body>
+</html>
+ 

@@ -1,0 +1,606 @@
+<html>
+<head></head>
+<body>
+ 
+<!DOCTYPE html>
+<html lang="es">
+ 
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+ 
+  <title>Registrador de Drones</title>
+ 
+  <style>
+    body {
+      margin: 0;
+      padding: 25px;
+      font-family: Arial, sans-serif;
+      background-color: #f4f4f4;
+    }
+ 
+    h1{
+      text-align: center;
+    }
+ 
+    .contenedor-principal {
+      max-width: 1100px;
+      margin: auto;
+    }
+ 
+    .panel {
+      padding: 20px;
+      margin-bottom: 25px;
+      background-color: white;
+      border-radius: 10px;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.12);
+    }
+ 
+    .dron-container {
+      justify-content: left;
+      text-align: left;
+      overflow: hidden;
+    }
+ 
+    .controles {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      align-items: center;
+      gap: 12px;
+      margin-top: 15px;
+    }
+ 
+    input {
+      width: 100%;
+      height: 40px;
+      border: none;
+      cursor: pointer;
+      border: solid 2px #acacac;
+    }
+ 
+    button {
+      padding: 10px 18px;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+      font-weight: bold;
+    }
+ 
+    #btn-guardar {
+      color: white;
+      background-color: #198754;
+    }
+ 
+    #btn-limpiar {
+      background-color: #ffc107;
+    }
+ 
+    #btn-cancelar {
+      color: white;
+      background-color: #6c757d;
+    }
+ 
+    .btn-editar {
+      color: white;
+      background-color: #0d6efd;
+    }
+ 
+    .btn-eliminar {
+      color: white;
+      background-color: #dc3545;
+    }
+ 
+    .oculto {
+      display: none;
+    }
+ 
+    #mensaje {
+      min-height: 24px;
+      margin-top: 15px;
+      text-align: center;
+      font-weight: bold;
+    }
+ 
+    .mensaje-correcto {
+      color: #198754;
+    }
+ 
+    .mensaje-error {
+      color: #dc3545;
+    }
+ 
+    .tabla-contenedor {
+      overflow-x: auto;
+    }
+ 
+    table {
+      width: 100%;
+      border-collapse: collapse;
+    }
+ 
+    th,
+    td {
+      padding: 10px;
+      text-align: center;
+      border-bottom: 1px solid #ddd;
+    }
+ 
+    th {
+      color: white;
+      background-color: #333;
+    }
+ 
+    .dato-info {
+      display: inline-block;
+      width: 35px;
+      height: 35px;
+      border: 1px solid #333;
+      border-radius: 5px;
+    }
+ 
+    .acciones {
+      display: flex;
+      justify-content: center;
+      gap: 5px;
+    }
+ 
+    #sin-drones {
+      padding: 20px;
+      color: #666;
+      text-align: center;
+    }
+  </style>
+</head>
+ 
+<body>
+ 
+  <main class="contenedor-principal">
+ 
+    <section class="panel">
+ 
+      <h1>Registra tu dron</h1>
+ 
+      <p id="modo-edicion" class="oculto">
+        Está editando un dron guardado.
+      </p>
+ 
+      <div class="dron-container">
+        <h2>Marca:</h2>
+        <input type="text" placeholder="Escriba la marca" id = marca>
+        <h2>Modelo:</h2>
+        <input type="text" placeholder="Escriba el modelo" id = modelo>
+        <h2>Tipo:</h2>
+        <input type="text" placeholder="Escriba el tipo" id = tipo>
+        <h2>Autonomia en minutos:</h2>
+        <input type="number" placeholder="Ingrese la autonomia en minutos" id = autonomiaMinutos>
+        <h2>Alcance en metros:</h2>
+        <input type="number" placeholder="Ingrese el alcance en metros" id = alcanceMetros>
+        <h2>Peso en gramos:</h2>
+        <input type="number" placeholder="Ingrese el peso en gramos" id = pesoGramos>
+        <h2>¿Tiene camara?</h2>
+        <input type="checkbox" id = tieneCamara>
+      </div>
+ 
+      <div class="controles">
+ 
+        <button type="button" id="btn-guardar">
+          Guardar dron
+        </button>
+ 
+        <button type="button" id="btn-limpiar">
+          Reiniciar datos
+        </button>
+ 
+        <button type="button" id="btn-cancelar" class="oculto">
+          Cancelar edición
+        </button>
+ 
+      </div>
+ 
+      <div id="mensaje"></div>
+ 
+    </section>
+ 
+    <section class="panel">
+ 
+      <h2>Mis drones guardados</h2>
+ 
+      <div class="tabla-contenedor">
+ 
+        <table id="tabla-drones">
+ 
+          <thead>
+            <tr>
+              <th>Marca</th>
+              <th>Modelo</th>
+              <th>Tipo</th>
+              <th>Autonomia (min)</th>
+              <th>Alcance (m)</th>
+              <th>Peso (g)</th>
+              <th>Camara</th>
+              <th>Acciones</th>
+            </tr>
+          </thead>
+ 
+          <tbody id="lista-drones"></tbody>
+ 
+        </table>
+ 
+        <p id="sin-drones" class="oculto">
+          No tiene drones guardados.
+        </p>
+ 
+      </div>
+ 
+    </section>
+ 
+  </main>
+ 
+  <script>
+    const API_DRONES = '/api/drones';
+ 
+    const btnGuardar = document.getElementById('btn-guardar');
+    const btnLimpiar = document.getElementById('btn-limpiar');
+    const btnCancelar = document.getElementById('btn-cancelar');
+    const listaDrones = document.getElementById('lista-drones');
+    const tablaDrones = document.getElementById('tabla-drones');
+    const sinDrones = document.getElementById('sin-drones');
+    const mensaje = document.getElementById('mensaje');
+    const modoEdicion = document.getElementById('modo-edicion');
+ 
+    const inputMarca = document.getElementById('marca');
+    const inputModelo = document.getElementById('modelo');
+    const inputTipo = document.getElementById('tipo');
+    const inputAutonomiaMinutos = document.getElementById('autonomiaMinutos');
+    const inputAlcanceMetros = document.getElementById('alcanceMetros');
+    const inputPesoGramos = document.getElementById('pesoGramos');
+    const inputTieneCamara = document.getElementById('tieneCamara');
+
+    let parteSeleccionada = null;
+    let dronEditandoId = null;
+ 
+ 
+    document.addEventListener('DOMContentLoaded', iniciarPagina);
+ 
+ 
+    async function iniciarPagina() {
+      const sesionValida = await verificarSesion();
+ 
+      if (!sesionValida) {
+        return;
+      }
+ 
+      configurarEventos();
+      await cargarDrones();
+    }
+ 
+ 
+    function obtenerToken() {
+      return localStorage.getItem('token');
+    }
+ 
+ 
+    function obtenerHeaders() {
+      return {
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer ' + obtenerToken()
+      };
+    }
+ 
+ 
+    async function verificarSesion() {
+      const token = obtenerToken();
+ 
+      if (!token) {
+        regresarAlLogin();
+        return false;
+      }
+ 
+      try {
+        const respuesta = await fetch('/api/verificatoken', {
+          method: 'POST',
+          headers: {
+            'Authorization': 'Bearer ' + token
+          }
+        });
+ 
+        if (!respuesta.ok) {
+          regresarAlLogin();
+          return false;
+        }
+ 
+        return true;
+ 
+      } catch (error) {
+        console.error('Error verificando la sesión:', error);
+        regresarAlLogin();
+        return false;
+      }
+    }
+ 
+ 
+    function regresarAlLogin() {
+      localStorage.removeItem('token');
+      window.location.replace('login.html');
+    }
+ 
+ 
+    async function procesarRespuesta(respuesta) {
+      if (respuesta.status === 401 || respuesta.status === 403) {
+        regresarAlLogin();
+        throw new Error('La sesión expiró');
+      }
+ 
+      let datos = {};
+ 
+      try {
+        datos = await respuesta.json();
+      } catch (error) {
+        datos = {};
+      }
+ 
+      if (!respuesta.ok) {
+        throw new Error(
+          datos.error || 'No fue posible completar la operación'
+        );
+      }
+ 
+      return datos;
+    }
+ 
+ 
+    function configurarEventos() {
+      btnGuardar.addEventListener('click', guardarDron);
+      btnLimpiar.addEventListener('click', reiniciarFormulario);
+      btnCancelar.addEventListener('click', reiniciarFormulario);
+    }
+ 
+    function obtenerDronActual() {
+      return {
+            marca: document.getElementById('marca').value,
+            modelo: document.getElementById('modelo').value,
+            tipo: document.getElementById('tipo').value,
+            autonomiaMinutos: document.getElementById('autonomiaMinutos').value,
+            alcanceMetros: document.getElementById('alcanceMetros').value,
+            pesoGramos: document.getElementById('pesoGramos').value,
+            tieneCamara: document.getElementById('tieneCamara').value === 'on' ? true : false
+
+      };
+    }
+
+ 
+    async function guardarDron() {
+      try {
+        btnGuardar.disabled = true;
+ 
+        const diseño = obtenerDronActual();
+ 
+        let url = API_DRONES;
+        let metodo = 'POST';
+ 
+        if (dronEditandoId) {
+          url = API_DRONES + '/' + dronEditandoId;
+          metodo = 'PUT';
+        }
+ 
+        const respuesta = await fetch(url, {
+          method: metodo,
+          headers: obtenerHeaders(),
+          body: JSON.stringify(diseño)
+        });
+
+       
+ 
+        await procesarRespuesta(respuesta);
+ 
+        mostrarMensaje(
+          dronEditandoId
+            ? 'Dron actualizado correctamente.'
+            : 'Dron guardado correctamente.'
+        );
+ 
+        reiniciarFormulario(false);
+        await cargarDrones();
+ 
+      } catch (error) {
+        console.error(error);
+        mostrarMensaje(error.message, true);
+ 
+      } finally {
+        btnGuardar.disabled = false;
+      }
+      let dronesLocales = JSON.parse(localStorage.getItem('mis_drones_locales')) || [];
+
+      if (dronEditandoId) {
+      dronesLocales = dronesLocales.map(d => (d.id === dronEditandoId || d._id === dronEditandoId) ? { ...dron, id: dronEditandoId } : d);
+        } else {
+      const nuevoDron = { ...dron, id: 'dron_' + Date.now() };
+      dronesLocales.push(nuevoDron);
+      }
+      localStorage.setItem('mis_drones_locales', JSON.stringify(dronesLocales));
+      }
+ 
+ 
+    async function cargarDrones() {
+      try {
+        const respuesta = await fetch(API_DRONES, {
+          method: 'GET',
+          headers: obtenerHeaders()
+        });
+ 
+        const drones = await procesarRespuesta(respuesta);
+ 
+        mostrarDrones(drones);
+ 
+      } catch (error) {
+        console.error(error);
+        mostrarMensaje(error.message, true);
+      }
+    }
+ 
+ 
+    function mostrarDrones(drones) {
+      listaDrones.replaceChildren();
+ 
+      if (drones.length === 0) {
+        tablaDrones.classList.add('oculto');
+        sinDrones.classList.remove('oculto');
+        return;
+      }
+ 
+      tablaDrones.classList.remove('oculto');
+      sinDrones.classList.add('oculto');
+ 
+      drones.forEach(dron => {
+        const fila = document.createElement('tr');
+        let celda = document.createElement('td')
+        celda.innerHTML = dron.marca
+        fila.appendChild(
+         celda
+        );
+  celda = document.createElement('td')
+        celda.innerHTML = dron.modelo
+        fila.appendChild(
+          celda
+        );
+   celda = document.createElement('td')
+        celda.innerHTML = dron.tipo
+        fila.appendChild(
+          celda
+        );
+   celda = document.createElement('td')
+        celda.innerHTML = dron.autonomiaMinutos
+        fila.appendChild(
+          celda
+        );
+  celda = document.createElement('td')
+        celda.innerHTML = dron.alcanceMetros
+        fila.appendChild(
+          celda
+        );
+  celda = document.createElement('td')
+        celda.innerHTML = dron.pesoGramos
+        fila.appendChild(
+         celda
+        );
+  celda = document.createElement('td')
+        celda.innerHTML = dron.tieneCamara
+        fila.appendChild(
+          celda
+        );
+ 
+        const celdaAcciones = document.createElement('td');
+        const contenedorAcciones = document.createElement('div');
+ 
+        contenedorAcciones.className = 'acciones';
+ 
+        const btnEditar = document.createElement('button');
+        btnEditar.type = 'button';
+        btnEditar.className = 'btn-editar';
+        btnEditar.textContent = 'Editar';
+ 
+        btnEditar.addEventListener('click', () => {
+          editarDron(dron);
+        });
+ 
+        const btnEliminar = document.createElement('button');
+        btnEliminar.type = 'button';
+        btnEliminar.className = 'btn-eliminar';
+        btnEliminar.textContent = 'Eliminar';
+ 
+        btnEliminar.addEventListener('click', () => {
+          eliminarDron(dron._id);
+        });
+ 
+        contenedorAcciones.appendChild(btnEditar);
+        contenedorAcciones.appendChild(btnEliminar);
+        celdaAcciones.appendChild(contenedorAcciones);
+        fila.appendChild(celdaAcciones);
+ 
+        listaDrones.appendChild(fila);
+      });
+    }
+ 
+    function editarDron(dron) {
+      dronEditandoId = dron.id || dron._id;
+
+      inputMarca.value = dron.marca || '';
+      inputModelo.value = dron.modelo || '';
+      inputTipo.value = dron.tipo || '';
+      inputAutonomiaMinutos.value = dron.autonomiaMinutos || '';
+      inputAlcanceMetros.value = dron.alcanceMetros || '';
+      inputPesoGramos.value = dron.pesoGramos || '';
+      inputTieneCamara.checked = !!dron.tieneCamara;
+
+      // Cambia la interfaz visual al modo edición
+      modoEdicion.classList.remove('oculto');
+      btnCancelar.classList.remove('oculto');
+      btnGuardar.textContent = 'Actualizar dron';
+    }
+ 
+    async function eliminarDron(id) {
+      const confirmar = window.confirm(
+        '¿Está seguro de que desea eliminar este dron?'
+      );
+ 
+      if (!confirmar) {
+        return;
+      }
+ 
+      try {
+        const respuesta = await fetch(
+          API_DRONES + '/' + id,
+          {
+            method: 'DELETE',
+            headers: obtenerHeaders()
+          }
+        );
+ 
+        const resultado = await procesarRespuesta(respuesta);
+ 
+        if (dronEditandoId === id) {
+          reiniciarFormulario(false);
+        }
+ 
+        mostrarMensaje(
+          resultado.mensaje || 'Dron eliminado correctamente.'
+        );
+ 
+        await cargarDrones();
+ 
+      } catch (error) {
+        console.error(error);
+        mostrarMensaje(error.message, true);
+      }
+    }
+ 
+ 
+    function reiniciarFormulario(limpiarMensajeActual = true) {
+      inputMarca.value = '';
+      inputModelo.value = '';
+      inputTipo.value = '';
+      inputAutonomiaMinutos.value = '';
+      inputAlcanceMetros.value = '';
+      inputPesoGramos.value = '';
+      inputTieneCamara.value = '';
+    }
+ 
+    function mostrarMensaje(texto, esError = false) {
+      mensaje.textContent = texto;
+ 
+      mensaje.className = esError
+        ? 'mensaje-error'
+        : 'mensaje-correcto';
+    }
+ 
+ 
+    function limpiarMensaje() {
+      mensaje.textContent = '';
+      mensaje.className = '';
+    }
+  </script>
+ 
+</body>
+ 
+</html>
